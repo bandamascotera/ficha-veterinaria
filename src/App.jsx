@@ -70,7 +70,7 @@ export default function App() {
       {/* CONTENIDO */}
       <div className="main">
         <div className="header">
-          <h2>TESTINGLa Banda Mascotera - Sistema Clínico Veterinario</h2>
+          <h2>La Banda Mascotera - Sistema Clínico Veterinario</h2>
         </div>
 
         <div className="content">
