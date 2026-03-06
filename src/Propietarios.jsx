@@ -5,14 +5,19 @@ export default function Propietarios() {
 
   const [propietarios, setPropietarios] = useState([])
   const [propietarioEditando, setPropietarioEditando] = useState(null)
-
+  const [busqueda, setBusqueda] = useState("")
   const [form, setForm] = useState({
     nombre: "",
+    dni: "",
     telefono: "",
     direccion: "",
     email: "",
     notas: ""
   })
+  const propietariosFiltrados = propietarios.filter(p =>
+  p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+  p.dni?.toLowerCase().includes(busqueda.toLowerCase())
+  )
 
   useEffect(() => {
     cargar()
@@ -55,6 +60,7 @@ export default function Propietarios() {
 
     setForm({
       nombre: "",
+      dni: "",
       telefono: "",
       direccion: "",
       email: "",
@@ -70,6 +76,7 @@ export default function Propietarios() {
 
     setForm({
       nombre: p.nombre || "",
+      dni: p.dni || "",
       telefono: p.telefono || "",
       direccion: p.direccion || "",
       email: p.email || "",
@@ -84,11 +91,29 @@ export default function Propietarios() {
       <h2>Propietarios</h2>
 
       <input
+        className="buscador"
+        placeholder="🔎 Buscar por nombre o DNI"
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+      />
+
+      <br/><br/>
+
+      <input
         name="nombre"
         placeholder="Nombre"
         onChange={handleChange}
         value={form.nombre}
       />
+      <br/><br/>
+
+      <input
+        name="dni"
+        placeholder="DNI"
+        onChange={handleChange}
+        value={form.dni}
+      />
+
       <br/><br/>
 
       <input
@@ -129,18 +154,24 @@ export default function Propietarios() {
 
       <hr/>
 
-      {propietarios.map(p => (
+      {propietariosFiltrados.map(p => (
 
-        <div key={p.id} style={{ marginBottom: 10 }}>
+        <div className="card" key={p.id}>
 
-          <strong>{p.nombre}</strong> - {p.telefono}
+              <h3>👤 {p.nombre}</h3>
 
-          <button
-            style={{ marginLeft: 10 }}
-            onClick={() => editarPropietario(p)}
-          >
-            Editar
-          </button>
+              {p.dni && <p>DNI: {p.dni}</p>}
+
+              <p>📞 Tel: {p.telefono}</p>
+
+              <p>📍 {p.direccion}</p>
+
+        <button
+          className="btn-warning"
+          onClick={() => editarPropietario(p)}
+        >
+          ✏️ EDITAR
+        </button>
 
         </div>
 

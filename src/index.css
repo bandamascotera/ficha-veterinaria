@@ -33,3 +33,44 @@ button{
   font-size:16px;
   border-radius:10px;
 }
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+  margin: 0;
+  color: #243a5e;
+}
+
+.card p {
+  margin: 6px 0;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #243a5e;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.btn-warning {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #e3b341;
+  color: #243a5e;
+  font-weight: bold;
+  font-size: 16px;
+}

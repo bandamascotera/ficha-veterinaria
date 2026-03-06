@@ -5,6 +5,7 @@ import { supabase } from "./supabaseClient"
 export default function Pacientes({ setVista, setPacienteSeleccionado }) {
 
   const [pacientes, setPacientes] = useState([])
+  const [busqueda, setBusqueda] = useState("")
   const [propietarios, setPropietarios] = useState([])
   const [pacienteEditando, setPacienteEditando] = useState(null)
   const [form, setForm] = useState({
@@ -15,7 +16,11 @@ export default function Pacientes({ setVista, setPacienteSeleccionado }) {
   fecha_nacimiento: "",
   color: "",
   propietario_id: ""
-})
+  })
+  const pacientesFiltrados = pacientes.filter(p =>
+  p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+  p.propietarios?.nombre?.toLowerCase().includes(busqueda.toLowerCase())
+  )
 
   useEffect(() => {
     cargarPacientes()
@@ -92,6 +97,15 @@ export default function Pacientes({ setVista, setPacienteSeleccionado }) {
     <div>
       <h2>Pacientes</h2>
 
+      <input
+        className="buscador"
+        placeholder="🔎 Buscar paciente o propietario"
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+      />
+
+      <br/><br/>
+
       <input name="nombre" placeholder="Nombre" onChange={handleChange} value={form.nombre}/>
       <br/><br/>
 
@@ -129,27 +143,39 @@ export default function Pacientes({ setVista, setPacienteSeleccionado }) {
 
       <hr/>
 
-      {pacientes.map(p => (
-        <div key={p.id} style={{ marginBottom: 10 }}>
+      {pacientesFiltrados.map(p => (
 
-          <strong>{p.nombre}</strong> - {p.propietarios?.nombre}
+          <div key={p.id} className="paciente-card">
 
-          <button
-            style={{ marginLeft: 10 }}
-            onClick={() => verFicha(p)}
-          >
-            Ver ficha
-          </button>
+              <div className="paciente-nombre">
+              🐶 {p.nombre}
+              </div>
 
-          <button
-            style={{ marginLeft: 10 }}
-            onClick={() => editarPaciente(p)}
-          >
-            Editar
-          </button>
+              <div className="paciente-prop">
+              Propietario: {p.propietarios?.nombre || "Sin propietario"}
+              </div>
 
-        </div>
-      ))}
+              <div className="paciente-botones">
+
+                  <button
+                    className="btn-ficha"
+                    onClick={() => verFicha(p)}
+                  >
+                    Ver ficha
+                  </button>
+
+                  <button
+                    className="btn-editar"
+                    onClick={() => editarPaciente(p)}
+                  >
+                    Editar
+                  </button>
+
+              </div>
+
+          </div>
+
+          ))}
     </div>
   )
 }

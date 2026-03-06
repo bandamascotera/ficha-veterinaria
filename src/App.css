@@ -217,3 +217,61 @@
   }
 
 }
+
+/* =========================
+   TARJETAS PARA CELULAR
+========================= */
+
+.paciente-card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+
+.paciente-nombre {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f3554;
+  margin-bottom: 6px;
+}
+
+.paciente-prop {
+  color: #555;
+  margin-bottom: 14px;
+}
+
+.paciente-botones {
+  display: flex;
+  gap: 10px;
+}
+
+.paciente-botones button {
+  flex: 1;
+  padding: 14px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-ficha {
+  background: #1f3554;
+  color: white;
+}
+
+.btn-editar {
+  background: #f4c542;
+  color: #1f3554;
+  font-weight: bold;
+}
+
+.buscador {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+}
