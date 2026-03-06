@@ -69,9 +69,13 @@ export default function App() {
 
       {/* CONTENIDO */}
       <div className="main">
-        <div className="header">
-          <h2>La Banda Mascotera - Sistema Clínico Veterinario</h2>
-        </div>
+          <div className="header">
+            <img src={logo} className="header-logo" />
+            <div className="header-text">
+                <h2>La Banda Mascotera</h2>
+                <span>Sistema Clínico Veterinario</span>
+            </div>
+          </div>
 
         <div className="content">
           {renderVista()}
