@@ -76,7 +76,29 @@ export default function App() {
         <div className="content">
           {renderVista()}
         </div>
+
+        {/* MENU MOBILE */}
+        <div className="mobile-nav">
+
+        <button onClick={() => setVista("propietarios")}>
+          👤
+          <span>Propietarios</span>
+        </button>
+
+        <button onClick={() => setVista("pacientes")}>
+          🐶
+          <span>Pacientes</span>
+        </button>
+
+        <button onClick={() => setVista("consultas")}>
+          🩺
+          <span>Consultas</span>
+        </button>
+
+        </div>
       </div>
     </div>
+
+    
   );
 }

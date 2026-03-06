@@ -17,21 +17,19 @@ body {
 /* Inputs */
 input,
 textarea,
-select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: white;
-  color: black;
+select{
+  width:100%;
+  padding:14px;
+  font-size:16px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  background:white;
+  color:black;
 }
 
 /* Botones */
-button {
-  padding: 10px 16px;
-  border-radius: 8px;
-  border: none;
-  background: black;
-  color: white;
-  cursor: pointer;
+button{
+  padding:14px 20px;
+  font-size:16px;
+  border-radius:10px;
 }

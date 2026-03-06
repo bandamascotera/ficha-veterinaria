@@ -112,3 +112,63 @@
   font-size: 15px;
   color: #f4c542;
 }
+
+.mobile-nav{
+  display:none;
+}
+
+/* VERSION CELULAR */
+
+@media (max-width:768px){
+
+  .sidebar{
+    display:none;
+  }
+
+  .header{
+    display:none;
+  }
+
+  .content{
+    padding:20px;
+    padding-bottom:90px;
+  }
+
+  .mobile-nav{
+
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+
+    height:70px;
+
+    background:white;
+    border-top:1px solid #ddd;
+
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+
+    box-shadow:0 -2px 10px rgba(0,0,0,0.1);
+  }
+
+  .mobile-nav button{
+
+    background:none;
+    border:none;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+    font-size:22px;
+    color:#1f3554;
+  }
+
+  .mobile-nav span{
+    font-size:12px;
+    margin-top:2px;
+  }
+
+}
