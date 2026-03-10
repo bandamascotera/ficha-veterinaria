@@ -10,6 +10,7 @@ import { supabase } from "./supabaseClient"
 import { useEffect } from "react"
 import PortalCliente from "./PortalCliente"
 
+"comentario"
 
 export default function App() {
   const [vista, setVista] = useState("inicio");
