@@ -155,6 +155,8 @@
 
   .mobile-nav button{
 
+    flex:1;
+
     background:none;
     border:none;
 
