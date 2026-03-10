@@ -5,10 +5,68 @@ import Consultas from "./Consultas";
 import FichaPaciente from "./FichaPaciente";
 import "./App.css";
 import logo from "./assets/logo.png";
+import Login from "./Login"
+import { supabase } from "./supabaseClient"
+import { useEffect } from "react"
+import PortalCliente from "./PortalCliente"
+
 
 export default function App() {
   const [vista, setVista] = useState("inicio");
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
+  const [user, setUser] = useState(null)
+  const [rol, setRol] = useState(null)
+
+  async function logout(){
+    await supabase.auth.signOut()
+    setUser(null)
+  }
+
+  useEffect(() => {
+
+  async function cargarSesion(session){
+
+    const usuario = session?.user
+
+    if (!usuario) {
+      setUser(null)
+      setRol(null)
+      return
+    }
+
+    setUser(usuario)
+
+    const { data } = await supabase
+      .from("usuarios")
+      .select("rol")
+      .eq("id", usuario.id)
+      .single()
+
+    if (data) {
+      setRol(data.rol)
+    }
+
+  }
+
+  // sesión inicial
+  supabase.auth.getSession().then(({ data }) => {
+    cargarSesion(data.session)
+  })
+
+  // escuchar cambios de sesión
+  const { data: listener } = supabase.auth.onAuthStateChange(
+    (event, session) => {
+      cargarSesion(session)
+    }
+  )
+
+  return () => {
+    listener.subscription.unsubscribe()
+  }
+
+  }, [])
+
+  
 
   function renderVista() {
     switch (vista) {
@@ -39,6 +97,14 @@ export default function App() {
     }
   }
 
+  if (!user) {
+    return <Login setUser={setUser} />
+  }
+
+  if (rol === "propietario") {
+  return <PortalCliente user={user} logout={logout} />
+  }
+
   return (
     <div className="app-container">
       
@@ -65,6 +131,11 @@ export default function App() {
         <button onClick={() => setVista("consultas")}>
           Consultas
         </button>
+
+        <button onClick={logout}>
+        Cerrar sesión
+        </button>
+
       </div>
 
       {/* CONTENIDO */}
@@ -84,6 +155,11 @@ export default function App() {
         {/* MENU MOBILE */}
         <div className="mobile-nav">
 
+        <button onClick={() => setVista("inicio")}>
+        🏠
+        <span>Inicio</span>
+        </button>
+
         <button onClick={() => setVista("propietarios")}>
           👤
           <span>Propietarios</span>
@@ -97,6 +173,11 @@ export default function App() {
         <button onClick={() => setVista("consultas")}>
           🩺
           <span>Consultas</span>
+        </button>
+
+        <button onClick={logout}>
+          🚪
+          <span>Salir</span>
         </button>
 
         </div>
