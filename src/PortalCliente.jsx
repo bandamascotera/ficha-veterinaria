@@ -1,16 +1,33 @@
 import { useState } from "react"
+import Mascotas from "./Mascotas"
 import logo from "./assets/logo.png";
+import FichaMascota from "./FichaMascota"
 
 export default function PortalCliente({ user, logout }) {
 
   const [vista,setVista] = useState("inicio")
+  const [pacienteSeleccionado,setPacienteSeleccionado] = useState(null)
 
   function renderVista(){
 
     switch(vista){
-
+      
       case "mascotas":
-        return <h2>Mis Mascotas</h2>
+        return (
+            <Mascotas
+                user={user}
+                setVista={setVista}
+                setPacienteSeleccionado={setPacienteSeleccionado}
+            />
+        )
+
+      case "fichaMascota":
+      return (
+        <FichaMascota
+          pacienteId={pacienteSeleccionado}
+          setVista={setVista}
+        />
+      )  
 
       case "historial":
         return <h2>Historial</h2>
