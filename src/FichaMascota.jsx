@@ -6,6 +6,7 @@ export default function FichaMascota({ pacienteId, setVista }) {
   const [mascota,setMascota] = useState(null)
   const [editando, setEditando] = useState(false)
   const [form, setForm] = useState({})
+  const [consultas, setConsultas] = useState([])
 
   function calcularEdad(fecha){
 
@@ -43,6 +44,15 @@ export default function FichaMascota({ pacienteId, setVista }) {
 
     setMascota(data)
     setForm(data)
+
+    const { data: historial } = await supabase
+    .from("consultas")
+    .select("*")
+    .eq("paciente_id", pacienteId)
+    .order("fecha", { ascending: false })
+
+    setConsultas(historial || [])
+
   }
 
   async function guardarCambios(){
@@ -218,7 +228,40 @@ function cancelarEdicion(){
 
       </div>
 
+      <div className="paciente-card">
+
+<h3>Historial veterinario</h3>
+
+{consultas.length === 0 && (
+  <p>No hay consultas registradas.</p>
+)}
+
+{consultas.map(c => (
+
+  <div key={c.id} className="historial-item">
+
+    <div className="historial-fecha">
+      📅 {new Date(c.fecha).toLocaleDateString()}
     </div>
+
+    <div className="historial-motivo">
+      {c.motivo}
+    </div>
+
+    {c.tratamiento && (
+      <div className="historial-tratamiento">
+        Tratamiento: {c.tratamiento}
+      </div>
+    )}
+
+  </div>
+
+))}
+
+</div>
+
+    </div>
+
 
   )
 }
