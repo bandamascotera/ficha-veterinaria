@@ -148,7 +148,7 @@ export default function Pacientes({ setVista, setPacienteSeleccionado }) {
           <div key={p.id} className="paciente-card">
 
               <div className="paciente-nombre">
-              🐶 {p.nombre}
+              {p.especie?.toLowerCase().includes("gato") ? "🐱" : "🐶"} {p.nombre}
               </div>
 
               <div className="paciente-prop">

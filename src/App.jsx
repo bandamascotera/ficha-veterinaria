@@ -83,11 +83,12 @@ export default function App() {
       case "consultas":
         return <Consultas />;
       case "ficha":
-        return (
-          <FichaPaciente
-            pacienteId={pacienteSeleccionado}
-          />
-        );
+          return (
+            <FichaPaciente
+              pacienteId={pacienteSeleccionado}
+              setVista={setVista}
+            />
+          );
       default:
         return (
           <div className="dashboard">

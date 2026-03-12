@@ -383,3 +383,39 @@
   color:#666;
   margin-top:2px;
 }
+
+/* =========================
+   VACUNAS EN CONSULTA
+========================= */
+
+.vacunas-select{
+  margin-bottom:15px;
+}
+
+.vacunas-lista{
+  margin-bottom:15px;
+}
+
+.vacuna-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.vacuna-remove{
+  background:#e74c3c;
+  border:none;
+  color:white;
+  border-radius:6px;
+  padding:4px 8px;
+  cursor:pointer;
+}
+
+.vacuna-remove:hover{
+  background:#c0392b;
+}
+
+.btn-guardar-consulta{
+  margin-top:15px;
+}

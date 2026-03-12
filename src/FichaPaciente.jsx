@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react"
 import { supabase } from "./supabaseClient"
 
-export default function FichaPaciente({ pacienteId }) {
+export default function FichaPaciente({ pacienteId, setVista }) {
 
   const [datos, setDatos] = useState(null)
   const [consultas, setConsultas] = useState([])
+  const [vacunasDisponibles,setVacunasDisponibles] = useState([])
+  const [vacunasSeleccionadas,setVacunasSeleccionadas] = useState([])
 
   const [nuevaConsulta, setNuevaConsulta] = useState({
     motivo: "",
@@ -19,6 +21,24 @@ export default function FichaPaciente({ pacienteId }) {
       cargarDatos()
     }
   }, [pacienteId])
+
+  useEffect(()=>{
+
+  async function cargarVacunas(){
+
+    const {data,error} = await supabase
+      .from("tipos_vacunas")
+      .select("*")
+
+    if(!error){
+      setVacunasDisponibles(data)
+    }
+
+  }
+
+  cargarVacunas()
+
+},[])
 
   async function cargarDatos() {
 
@@ -51,10 +71,19 @@ export default function FichaPaciente({ pacienteId }) {
       propietario: propietarioData
     })
 
-    // Traer historial
+    // 🔹 Traer historial con vacunas
     const { data: historial } = await supabase
       .from("consultas")
-      .select("*")
+      .select(`
+        *,
+        vacunas_aplicadas(
+          fecha_aplicacion,
+          tipos_vacunas(
+            nombre,
+            frecuencia_meses
+          )
+        )
+      `)
       .eq("paciente_id", pacienteId)
       .order("fecha", { ascending: false })
 
@@ -63,33 +92,57 @@ export default function FichaPaciente({ pacienteId }) {
 
   async function guardarConsultaFicha() {
 
-    if (!nuevaConsulta.motivo) {
-      alert("El motivo es obligatorio")
-      return
-    }
-
-    const { error } = await supabase
-      .from("consultas")
-      .insert([{
-        ...nuevaConsulta,
-        paciente_id: pacienteId
-      }])
-
-    if (error) {
-      alert(error.message)
-      return
-    }
-
-    setNuevaConsulta({
-      motivo: "",
-      diagnostico: "",
-      tratamiento: "",
-      peso: "",
-      observaciones: ""
-    })
-
-    cargarDatos()
+  if (!nuevaConsulta.motivo) {
+    alert("El motivo es obligatorio")
+    return
   }
+
+  const { data, error } = await supabase
+    .from("consultas")
+    .insert([{
+      ...nuevaConsulta,
+      paciente_id: pacienteId
+    }])
+    .select()
+    .single()
+
+  if (error) {
+    alert(error.message)
+    return
+  }
+
+  const consultaId = data.id
+
+  if (vacunasSeleccionadas.length > 0) {
+
+    const registros = vacunasSeleccionadas.map(vacunaId => ({
+      paciente_id: pacienteId,
+      consulta_id: consultaId,
+      vacuna_id: vacunaId
+    }))
+
+    const { error: errorVacunas } = await supabase
+      .from("vacunas_aplicadas")
+      .insert(registros)
+
+    if (errorVacunas) {
+      console.error(errorVacunas)
+    }
+
+  }
+
+  setVacunasSeleccionadas([])
+
+  setNuevaConsulta({
+    motivo: "",
+    diagnostico: "",
+    tratamiento: "",
+    peso: "",
+    observaciones: ""
+  })
+
+  cargarDatos()
+}
 
   function calcularEdad(fecha) {
     if (!fecha) return "-"
@@ -98,13 +151,24 @@ export default function FichaPaciente({ pacienteId }) {
     return hoy.getFullYear() - nacimiento.getFullYear()
   }
 
+  function calcularRefuerzo(fecha, meses){
+
+    if(!fecha || !meses) return null
+
+    const f = new Date(fecha)
+    f.setMonth(f.getMonth() + meses)
+
+    return f.toLocaleDateString()
+
+  }
+
   if (!pacienteId) return <p>Seleccioná un paciente.</p>
   if (!datos) return <p>Cargando ficha...</p>
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto" }}>
 
-      <button onClick={() => window.location.reload()}>
+      <button onClick={() => setVista("pacientes")}>
         ← Volver
       </button>
 
@@ -117,7 +181,9 @@ export default function FichaPaciente({ pacienteId }) {
         marginBottom: 20
       }}>
 
-        <h3>{datos.nombre}</h3>
+        <h3>
+        {datos.especie?.toLowerCase().includes("gato") ? "🐱" : "🐶"} {datos.nombre}
+        </h3>
 
         <p><strong>Especie:</strong> {datos.especie}</p>
         <p><strong>Raza:</strong> {datos.raza}</p>
@@ -147,12 +213,12 @@ export default function FichaPaciente({ pacienteId }) {
         <h3>Nueva Consulta</h3>
 
         <input
-  placeholder="Peso actual (kg)"
-  value={nuevaConsulta.peso}
-  onChange={(e) =>
-    setNuevaConsulta({ ...nuevaConsulta, peso: e.target.value })
-  }
-/>
+          placeholder="Peso actual (kg)"
+          value={nuevaConsulta.peso}
+          onChange={(e) =>
+            setNuevaConsulta({ ...nuevaConsulta, peso: e.target.value })
+          }
+        />
 
 <br/><br/>
 
@@ -164,7 +230,7 @@ export default function FichaPaciente({ pacienteId }) {
         }
       />
 
-      <br/><br/>
+<br/><br/>
 
       <textarea
         placeholder="Observaciones"
@@ -174,7 +240,7 @@ export default function FichaPaciente({ pacienteId }) {
         }
       />
 
-      <br/><br/>
+<br/><br/>
 
       <input
         placeholder="Tratamiento"
@@ -184,7 +250,7 @@ export default function FichaPaciente({ pacienteId }) {
         }
       />
 
-      <br/><br/>
+<br/><br/>
 
       <input
         placeholder="Diagnóstico Presuntivo"
@@ -193,37 +259,133 @@ export default function FichaPaciente({ pacienteId }) {
           setNuevaConsulta({ ...nuevaConsulta, diagnostico: e.target.value })
         }
       />
-        <br/><br/>
 
-        <button onClick={guardarConsultaFicha}>
-          Guardar Consulta
-        </button>
+<br/><br/>
 
-      </div>
+<h4>Vacunas aplicadas</h4>
 
-      <h3>Historial de Consultas</h3>
+<select
+onChange={(e)=>{
 
-      {consultas.length === 0 && <p>No tiene consultas registradas.</p>}
+const vacunaId = e.target.value
 
-      {consultas.map(c => (
-        <div key={c.id} style={{
-          border: "1px solid #ddd",
-          padding: 15,
-          marginBottom: 10,
-          borderRadius: 8,
-          backgroundColor: "#f9f9f9"
-        }}>
+if(!vacunaId) return
+if(vacunasSeleccionadas.includes(vacunaId)) return
 
-          <p><strong>Fecha:</strong> {new Date(c.fecha).toLocaleDateString()}</p>
-          <p><strong>Peso:</strong> {c.peso} kg</p>
-          <p><strong>Motivo de consulta:</strong> {c.motivo}</p>
-          <p><strong>Observaciones:</strong> {c.observaciones}</p>
-          <p><strong>Tratamiento:</strong> {c.tratamiento}</p>
-          <p><strong>Diagnóstico Presuntivo:</strong> {c.diagnostico}</p>
+setVacunasSeleccionadas([
+...vacunasSeleccionadas,
+vacunaId
+])
 
-        </div>
-      ))}
+}}
+>
 
-    </div>
-  )
+<option value="">Seleccionar vacuna</option>
+
+{vacunasDisponibles.map(v => (
+<option key={v.id} value={v.id}>
+{v.nombre}
+</option>
+))}
+
+</select>
+
+<div className="vacunas-lista">
+
+{vacunasSeleccionadas.map(id => {
+
+const vacuna = vacunasDisponibles.find(v=>v.id===id)
+
+return (
+<div key={id} className="vacuna-item">
+💉 {vacuna?.nombre}
+
+<button
+onClick={() =>
+setVacunasSeleccionadas(
+vacunasSeleccionadas.filter(v => v !== id)
+)
+}
+>
+❌
+</button>
+
+</div>
+)
+
+})}
+
+</div>
+
+<button onClick={guardarConsultaFicha}>
+Guardar Consulta
+</button>
+
+</div>
+
+<h3>Historial de Consultas</h3>
+
+{consultas.length === 0 && <p>No tiene consultas registradas.</p>}
+
+{consultas.map(c => (
+<div key={c.id} style={{
+border: "1px solid #ddd",
+padding: 15,
+marginBottom: 10,
+borderRadius: 8,
+backgroundColor: "#f9f9f9"
+}}>
+
+<p><strong>Fecha:</strong> {new Date(c.fecha).toLocaleDateString()}</p>
+<p><strong>Peso:</strong> {c.peso} kg</p>
+<p><strong>Motivo de consulta:</strong> {c.motivo}</p>
+<p><strong>Observaciones:</strong> {c.observaciones}</p>
+<p><strong>Tratamiento:</strong> {c.tratamiento}</p>
+<p><strong>Diagnóstico Presuntivo:</strong> {c.diagnostico}</p>
+
+{c.vacunas_aplicadas?.length > 0 && (
+
+<div style={{marginTop:10}}>
+
+<strong>Vacunas aplicadas:</strong>
+
+{c.vacunas_aplicadas.map((v,i)=>{
+
+const vacuna = v.tipos_vacunas
+
+return (
+
+<div key={i}>
+
+💉 {vacuna?.nombre}
+
+<br/>
+
+<small>
+
+Aplicada: {new Date(v.fecha_aplicacion).toLocaleDateString()}
+
+{vacuna?.frecuencia_meses && (
+<>
+{" "}• Refuerzo: {calcularRefuerzo(v.fecha_aplicacion, vacuna.frecuencia_meses)}
+</>
+)}
+
+</small>
+
+</div>
+
+)
+
+})}
+
+</div>
+
+)}
+
+</div>
+))}
+
+</div>
+)
 }

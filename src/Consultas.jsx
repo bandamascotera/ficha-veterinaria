@@ -4,6 +4,8 @@ import { supabase } from './supabaseClient'
 export default function Consultas() {
 
   const [pacientes, setPacientes] = useState([])
+  const [vacunasDisponibles,setVacunasDisponibles] = useState([])
+  const [vacunasSeleccionadas,setVacunasSeleccionadas] = useState([])
 
   const [form, setForm] = useState({
     paciente_id: '',
@@ -17,6 +19,24 @@ export default function Consultas() {
   useEffect(() => {
     cargarPacientes()
   }, [])
+
+  useEffect(()=>{
+
+  async function cargarVacunas(){
+
+    const {data,error} = await supabase
+      .from("tipos_vacunas")
+      .select("*")
+
+    if(!error){
+      setVacunasDisponibles(data)
+    }
+
+  }
+
+  cargarVacunas()
+
+  },[])
 
   async function cargarPacientes() {
 
@@ -38,22 +58,50 @@ export default function Consultas() {
 
   async function guardarConsulta() {
 
-    if (!form.paciente_id) {
-      alert("Seleccionar paciente")
-      return
-    }
-
-    const { error } = await supabase
-      .from('consultas')
-      .insert([form])
-
-    if (error)
-      alert(error.message)
-    else {
-      alert("Consulta guardada correctamente")
-      limpiarFormulario()
-    }
+  if (!form.paciente_id) {
+    alert("Seleccionar paciente")
+    return
   }
+
+  const { data, error } = await supabase
+    .from("consultas")
+    .insert([form])
+    .select()
+    .single()
+
+  if (error){
+    alert(error.message)
+    return
+  }
+
+  const consultaId = data.id
+
+  // guardar vacunas aplicadas
+  if(vacunasSeleccionadas.length > 0){
+
+    const registros = vacunasSeleccionadas.map(vacunaId => ({
+      paciente_id: form.paciente_id,
+      consulta_id: consultaId,
+      vacuna_id: vacunaId
+    }))
+
+    const { error: errorVacunas } = await supabase
+      .from("vacunas_aplicadas")
+      .insert(registros)
+
+    if(errorVacunas){
+      console.error(errorVacunas)
+    }
+
+  }
+
+  alert("Consulta guardada correctamente")
+
+  setVacunasSeleccionadas([])
+
+  limpiarFormulario()
+
+}
 
   function limpiarFormulario() {
     setForm({
@@ -127,6 +175,68 @@ export default function Consultas() {
           onChange={handleChange}
           value={form.diagnostico}
         />
+
+        <h4>Vacunas aplicadas</h4>
+
+          <select
+          className="vacunas-select"
+          onChange={(e)=>{
+
+            const vacunaId = e.target.value
+
+            if(!vacunaId) return
+
+            if(vacunasSeleccionadas.includes(vacunaId)) return
+
+            setVacunasSeleccionadas([
+              ...vacunasSeleccionadas,
+              vacunaId
+            ])
+
+          }}
+          >
+
+          <option value="">Seleccionar vacuna</option>
+
+          {vacunasDisponibles.map(v => (
+
+          <option key={v.id} value={v.id}>
+          {v.nombre}
+          </option>
+
+          ))}
+
+          </select>
+
+
+          <div className="vacunas-lista">
+
+          {vacunasSeleccionadas.map(id => {
+
+          const vacuna = vacunasDisponibles.find(v=>v.id===id)
+
+          return (
+            <div key={id} className="vacuna-item">
+
+              💉 {vacuna?.nombre}
+
+              <button
+              className="vacuna-remove"
+              onClick={() =>
+                setVacunasSeleccionadas(
+                  vacunasSeleccionadas.filter(v => v !== id)
+                )
+              }
+              >
+                ❌
+              </button>
+
+            </div>
+          )
+
+          })}
+
+          </div>
 
       <br/><br/>
 

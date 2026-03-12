@@ -30,6 +30,17 @@ export default function FichaMascota({ pacienteId, setVista }) {
     return `${años} años`
   }
 
+  function calcularRefuerzo(fecha, meses){
+
+        if(!fecha || !meses) return null
+
+        const f = new Date(fecha)
+        f.setMonth(f.getMonth() + meses)
+
+        return f.toLocaleDateString()
+
+        }
+
   useEffect(() => {
     cargarMascota()
   }, [])
@@ -46,10 +57,19 @@ export default function FichaMascota({ pacienteId, setVista }) {
     setForm(data)
 
     const { data: historial } = await supabase
-    .from("consultas")
-    .select("*")
-    .eq("paciente_id", pacienteId)
-    .order("fecha", { ascending: false })
+        .from("consultas")
+        .select(`
+            *,
+            vacunas_aplicadas(
+            fecha_aplicacion,
+            tipos_vacunas(
+                nombre,
+                frecuencia_meses
+            )
+            )
+        `)
+        .eq("paciente_id", pacienteId)
+        .order("fecha", { ascending: false })
 
     setConsultas(historial || [])
 
@@ -150,91 +170,91 @@ function cancelarEdicion(){
 
         </div>
 
-        <div className="paciente-prop">
-          <strong>Sexo:</strong> {mascota.sexo || "No registrado"}
-        </div>
+            <div className="paciente-prop">
+            <strong>Sexo:</strong> {mascota.sexo || "No registrado"}
+            </div>
 
-        <div className="paciente-prop">
-        <strong>Color:</strong>
-
-        {editando ? (
-
-            <input
-                value={form.color || ""}
-                onChange={(e)=>setForm({...form,color:e.target.value})}
-            />
-
-        ) : (
-
-            mascota.color || "No registrado"
-
-        )}
-
-        </div>
-
-        <div className="paciente-prop">
-            <strong>Nacimiento:</strong>
+            <div className="paciente-prop">
+            <strong>Color:</strong>
 
             {editando ? (
 
                 <input
-                type="date"
-                value={form.fecha_nacimiento || ""}
-                onChange={(e)=>setForm({...form,fecha_nacimiento:e.target.value})}
+                    value={form.color || ""}
+                    onChange={(e)=>setForm({...form,color:e.target.value})}
                 />
 
             ) : (
 
-                mascota.fecha_nacimiento || "No registrado"
+                mascota.color || "No registrado"
 
             )}
 
             </div>
 
-        <div className="paciente-prop">
-          <strong>Edad:</strong> {calcularEdad(mascota.fecha_nacimiento)}
+            <div className="paciente-prop">
+                <strong>Nacimiento:</strong>
+
+                {editando ? (
+
+                    <input
+                    type="date"
+                    value={form.fecha_nacimiento || ""}
+                    onChange={(e)=>setForm({...form,fecha_nacimiento:e.target.value})}
+                    />
+
+                ) : (
+
+                    mascota.fecha_nacimiento || "No registrado"
+
+                )}
+
+                </div>
+
+            <div className="paciente-prop">
+            <strong>Edad:</strong> {calcularEdad(mascota.fecha_nacimiento)}
+            </div>
+
+            <div className="paciente-prop">
+            <strong>Peso:</strong> {mascota.peso || "No registrado"}
+            </div>
+
         </div>
 
-        <div className="paciente-prop">
-          <strong>Peso:</strong> {mascota.peso || "No registrado"}
+        <br/>
+
+        {editando && (
+            <div style={{marginTop:"10px", marginBottom:"20px"}}>
+            <button onClick={guardarCambios}
+            style={{marginRight:"10px"}}>
+                💾 Guardar cambios
+            </button>
+            <button onClick={cancelarEdicion}>
+                ❌ Cancelar
+            </button>
+            </div>
+        )}
+
+        <div style={{marginTop:"15px", marginBottom:"35px"}}></div>
+
+
+        <div className="paciente-card">
+
+            <h3>Notas veterinarias</h3>
+
+            <p>
+            {mascota.notas || "No hay notas registradas."}
+            </p>
+
         </div>
 
-      </div>
+        <div className="paciente-card">
 
-      <br/>
+    <h3>Historial veterinario</h3>
 
-      {editando && (
-        <div style={{marginTop:"10px", marginBottom:"20px"}}>
-        <button onClick={guardarCambios}
-        style={{marginRight:"10px"}}>
-            💾 Guardar cambios
-        </button>
-        <button onClick={cancelarEdicion}>
-            ❌ Cancelar
-        </button>
-        </div>
-       )}
-
-       <div style={{marginTop:"15px", marginBottom:"35px"}}></div>
-
-
-      <div className="paciente-card">
-
-        <h3>Notas veterinarias</h3>
-
-        <p>
-          {mascota.notas || "No hay notas registradas."}
-        </p>
-
-      </div>
-
-      <div className="paciente-card">
-
-<h3>Historial veterinario</h3>
-
-{consultas.length === 0 && (
-  <p>No hay consultas registradas.</p>
-)}
+    {consultas.length === 0 && (
+    <p>No hay consultas registradas.</p>
+    )}
 
 {consultas.map(c => (
 
@@ -252,6 +272,51 @@ function cancelarEdicion(){
       <div className="historial-tratamiento">
         Tratamiento: {c.tratamiento}
       </div>
+    )}
+
+    {/* VACUNAS */}
+
+    {c.vacunas_aplicadas?.length > 0 && (
+
+      <div className="historial-vacunas">
+
+        <strong>Vacunas aplicadas</strong>
+
+        {c.vacunas_aplicadas.map((v,i)=>{
+
+          const vacuna = v.tipos_vacunas
+
+          return(
+
+            <div key={i}>
+
+              💉 {vacuna?.nombre}
+
+              <br/>
+
+              <small>
+
+                Aplicada: {new Date(v.fecha_aplicacion).toLocaleDateString()}
+
+                {vacuna?.frecuencia_meses && (
+                  <>
+                    {" "}• Refuerzo: {calcularRefuerzo(
+                      v.fecha_aplicacion,
+                      vacuna.frecuencia_meses
+                    )}
+                  </>
+                )}
+
+              </small>
+
+            </div>
+
+          )
+
+        })}
+
+      </div>
+
     )}
 
   </div>
