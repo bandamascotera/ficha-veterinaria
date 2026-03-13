@@ -51,6 +51,21 @@ export default function Mascotas({ user, setVista, setPacienteSeleccionado }) {
             🐾 {m.nombre}
           </div>
 
+          {m.foto_url && (
+
+                <img
+                    src={m.foto_url}
+                    style={{
+                    width:"80px",
+                    height:"80px",
+                    objectFit:"cover",
+                    borderRadius:"10px",
+                    marginBottom:"10px"
+                    }}
+                />
+
+                )}
+
           <div className="paciente-prop">
             {m.especie} • {m.raza}
           </div>

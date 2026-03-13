@@ -4,6 +4,7 @@
     import FichaMascota from "./FichaMascota"
     import Historial from "./Historial"
     import Vacunas from "./Vacunas"
+    import Cuenta from "./Cuenta"
 
     export default function PortalCliente({ user, logout }) {
 
@@ -36,6 +37,9 @@
 
         case "vacunas":
             return <Vacunas user={user} />
+        
+        case "cuenta":
+            return <Cuenta user={user} logout={logout} />
 
         default:
             return (
@@ -79,8 +83,8 @@
             Vacunas
             </button>
 
-            <button onClick={logout}>
-            Cerrar sesión
+            <button onClick={()=>setVista("cuenta")}>
+            Cuenta
             </button>
 
         </div>
@@ -132,9 +136,9 @@
                 <span>Vacunas</span>
                 </button>
 
-                <button onClick={logout}>
-                🚪
-                <span>Salir</span>
+                <button onClick={()=>setVista("cuenta")}>
+                👤
+                <span>Cuenta</span>
                 </button>
 
                 </div>

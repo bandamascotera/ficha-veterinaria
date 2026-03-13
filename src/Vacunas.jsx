@@ -11,7 +11,6 @@ export default function Vacunas({ user }) {
 
   async function cargarVacunas(){
 
-    // buscar propietario
     const { data: propietario } = await supabase
       .from("propietarios")
       .select("id")
@@ -20,7 +19,6 @@ export default function Vacunas({ user }) {
 
     if(!propietario) return
 
-    // buscar mascotas
     const { data: mascotas } = await supabase
       .from("pacientes")
       .select("id")
@@ -33,7 +31,6 @@ export default function Vacunas({ user }) {
 
     const ids = mascotas.map(m => m.id)
 
-    // traer vacunas aplicadas
     const { data } = await supabase
       .from("vacunas_aplicadas")
       .select(`
@@ -87,6 +84,14 @@ export default function Vacunas({ user }) {
 
   }
 
+  function textoEstado(estado){
+
+    if(estado === "ok") return "🟢 Vacuna al día"
+    if(estado === "proxima") return "🟡 Próxima a vencer"
+    if(estado === "vencida") return "🔴 Vacuna vencida"
+
+  }
+
   return(
 
     <div>
@@ -133,6 +138,10 @@ export default function Vacunas({ user }) {
               Refuerzo: {refuerzo.toLocaleDateString()}
             </div>
           )}
+
+          <div style={{marginTop:"6px", fontWeight:"bold"}}>
+            {textoEstado(estado)}
+          </div>
 
         </div>
 

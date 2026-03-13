@@ -97,6 +97,47 @@ export default function FichaMascota({ pacienteId, setVista }) {
 
 }
 
+async function subirFoto(e){
+
+  const file = e.target.files[0]
+  if(!file) return
+
+  const fileName = `${mascota.id}-${Date.now()}`
+
+  const { error } = await supabase
+    .storage
+    .from("mascotas")
+    .upload(fileName, file)
+
+  if(error){
+    alert(error.message)
+    return
+  }
+
+  const { data } = supabase
+    .storage
+    .from("mascotas")
+    .getPublicUrl(fileName)
+
+  const url = data.publicUrl
+
+  const { error: updateError } = await supabase
+    .from("pacientes")
+    .update({ foto_url: url })
+    .eq("id", mascota.id)
+
+  if(updateError){
+    alert(updateError.message)
+    return
+  }
+
+  setMascota({
+    ...mascota,
+    foto_url: url
+  })
+
+}
+
 function cancelarEdicion(){
 
   setForm(mascota)   // volver a los datos originales
@@ -125,6 +166,59 @@ function cancelarEdicion(){
     >
         ✏️ Editar datos
         </button>
+
+      <div style={{marginTop:"20px"}}>
+
+            {mascota.foto_url ? (
+
+                <img
+                src={mascota.foto_url}
+                style={{
+                    width:"150px",
+                    height:"150px",
+                    objectFit:"cover",
+                    borderRadius:"12px"
+                }}
+                />
+
+            ) : (
+
+                <div style={{
+                width:"150px",
+                height:"150px",
+                background:"#eee",
+                borderRadius:"12px",
+                display:"flex",
+                alignItems:"center",
+                justifyContent:"center",
+                fontSize:"40px"
+                }}>
+                <strong>Foto</strong>
+                </div>
+
+            )}
+
+            <br/><br/>
+            
+            {editando && (
+
+                <div style={{marginTop:"10px"}}>
+
+                    <div style={{marginBottom:"5px", fontWeight:"bold"}}>
+                    📷 Subir foto
+                    </div>
+
+                    <input
+                    type="file"
+                    accept="image/*"
+                    onChange={subirFoto}
+                    />
+
+                </div>
+
+                )}
+
+            </div>
 
       <div className="paciente-prop" style={{marginTop:"10px"}}>
 
