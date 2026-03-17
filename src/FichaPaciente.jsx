@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
 import { supabase } from "./supabaseClient"
+import { useEffect, useState, useRef } from "react"
 
 export default function FichaPaciente({ pacienteId, setVista }) {
 
@@ -7,13 +7,16 @@ export default function FichaPaciente({ pacienteId, setVista }) {
   const [consultas, setConsultas] = useState([])
   const [vacunasDisponibles,setVacunasDisponibles] = useState([])
   const [vacunasSeleccionadas,setVacunasSeleccionadas] = useState([])
+  const [consultaEditando, setConsultaEditando] = useState(null)
+  const formRef = useRef(null)
 
   const [nuevaConsulta, setNuevaConsulta] = useState({
     motivo: "",
     diagnostico: "",
     tratamiento: "",
     peso: "",
-    observaciones: ""
+    observaciones: "",
+    analisis_clinico: ""
   })
 
   useEffect(() => {
@@ -90,21 +93,41 @@ export default function FichaPaciente({ pacienteId, setVista }) {
     setConsultas(historial || [])
   }
 
-  async function guardarConsultaFicha() {
+async function guardarConsultaFicha() {
 
   if (!nuevaConsulta.motivo) {
     alert("El motivo es obligatorio")
     return
   }
 
-  const { data, error } = await supabase
-    .from("consultas")
-    .insert([{
-      ...nuevaConsulta,
-      paciente_id: pacienteId
-    }])
-    .select()
-    .single()
+  let data, error
+
+  if (consultaEditando) {
+
+    const res = await supabase
+      .from("consultas")
+      .update(nuevaConsulta)
+      .eq("id", consultaEditando)
+      .select()
+      .single()
+
+    data = res.data
+    error = res.error
+
+  } else {
+
+    const res = await supabase
+      .from("consultas")
+      .insert([{
+        ...nuevaConsulta,
+        paciente_id: pacienteId
+      }])
+      .select()
+      .single()
+
+    data = res.data
+    error = res.error
+  }
 
   if (error) {
     alert(error.message)
@@ -113,7 +136,8 @@ export default function FichaPaciente({ pacienteId, setVista }) {
 
   const consultaId = data.id
 
-  if (vacunasSeleccionadas.length > 0) {
+  // SOLO si es nueva consulta agrega vacunas
+  if (!consultaEditando && vacunasSeleccionadas.length > 0) {
 
     const registros = vacunasSeleccionadas.map(vacunaId => ({
       paciente_id: pacienteId,
@@ -121,15 +145,12 @@ export default function FichaPaciente({ pacienteId, setVista }) {
       vacuna_id: vacunaId
     }))
 
-    const { error: errorVacunas } = await supabase
+    await supabase
       .from("vacunas_aplicadas")
       .insert(registros)
-
-    if (errorVacunas) {
-      console.error(errorVacunas)
-    }
-
   }
+
+  setConsultaEditando(null)
 
   setVacunasSeleccionadas([])
 
@@ -138,18 +159,38 @@ export default function FichaPaciente({ pacienteId, setVista }) {
     diagnostico: "",
     tratamiento: "",
     peso: "",
-    observaciones: ""
+    observaciones: "",
+    analisis_clinico: ""
   })
 
   cargarDatos()
 }
 
-  function calcularEdad(fecha) {
-    if (!fecha) return "-"
-    const nacimiento = new Date(fecha)
-    const hoy = new Date()
-    return hoy.getFullYear() - nacimiento.getFullYear()
-  }
+function editarConsulta(c) {
+
+  setConsultaEditando(c.id)
+
+  setNuevaConsulta({
+    motivo: c.motivo || "",
+    diagnostico: c.diagnostico || "",
+    tratamiento: c.tratamiento || "",
+    peso: c.peso || "",
+    observaciones: c.observaciones || "",
+    analisis_clinico: c.analisis_clinico || ""
+  })
+
+  formRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  })
+}
+
+  
+function calcularEdad(anio){
+  if(!anio) return "-"
+  const hoy = new Date().getFullYear()
+  return hoy - anio
+}
 
   function calcularRefuerzo(fecha, meses){
 
@@ -189,7 +230,11 @@ export default function FichaPaciente({ pacienteId, setVista }) {
         <p><strong>Raza:</strong> {datos.raza}</p>
         <p><strong>Sexo:</strong> {datos.sexo}</p>
         <p><strong>Color:</strong> {datos.color}</p>
-        <p><strong>Edad:</strong> {calcularEdad(datos.fecha_nacimiento)} años</p>
+        {datos.observaciones && (
+        <p><strong>Observaciones:</strong> {datos.observaciones}</p>
+        )}
+        
+        <p><strong>Edad:</strong> {calcularEdad(datos.anio_nacimiento)} años</p>
 
         <hr />
 
@@ -202,13 +247,16 @@ export default function FichaPaciente({ pacienteId, setVista }) {
 
       </div>
 
-      <div style={{
-        border: "1px solid #4CAF50",
-        padding: 20,
-        borderRadius: 10,
-        marginBottom: 30,
-        backgroundColor: "#f0fff4"
-      }}>
+      <div
+        ref={formRef}
+        style={{
+          border: "1px solid #4CAF50",
+          padding: 20,
+          borderRadius: 10,
+          marginBottom: 30,
+          backgroundColor: "#f0fff4"
+        }}
+      >
 
         <h3>Nueva Consulta</h3>
 
@@ -241,6 +289,16 @@ export default function FichaPaciente({ pacienteId, setVista }) {
       />
 
 <br/><br/>
+
+      <textarea
+          placeholder="Análisis Clínico"
+          value={nuevaConsulta.analisis_clinico}
+          onChange={(e) =>
+            setNuevaConsulta({ ...nuevaConsulta, analisis_clinico: e.target.value })
+          }
+        />
+
+        <br/><br/>
 
       <input
         placeholder="Tratamiento"
@@ -318,7 +376,7 @@ vacunasSeleccionadas.filter(v => v !== id)
 </div>
 
 <button onClick={guardarConsultaFicha}>
-Guardar Consulta
+  {consultaEditando ? "Actualizar Consulta" : "Guardar Consulta"}
 </button>
 
 </div>
@@ -339,7 +397,12 @@ backgroundColor: "#f9f9f9"
 <p><strong>Fecha:</strong> {new Date(c.fecha).toLocaleDateString()}</p>
 <p><strong>Peso:</strong> {c.peso} kg</p>
 <p><strong>Motivo de consulta:</strong> {c.motivo}</p>
-<p><strong>Observaciones:</strong> {c.observaciones}</p>
+<p style={{whiteSpace: "pre-line"}}>
+  <strong>Observaciones:</strong> {c.observaciones}
+</p>
+<p style={{whiteSpace: "pre-line"}}>
+  <strong>Análisis Clínico:</strong> {c.analisis_clinico}
+</p>
 <p><strong>Tratamiento:</strong> {c.tratamiento}</p>
 <p><strong>Diagnóstico Presuntivo:</strong> {c.diagnostico}</p>
 
@@ -373,6 +436,7 @@ Aplicada: {new Date(v.fecha_aplicacion).toLocaleDateString()}
 
 </small>
 
+
 </div>
 
 )
@@ -382,6 +446,13 @@ Aplicada: {new Date(v.fecha_aplicacion).toLocaleDateString()}
 </div>
 
 )}
+
+<button
+  onClick={() => editarConsulta(c)}
+  style={{ marginTop: 10 }}
+>
+  ✏️ Editar
+</button>
 
 </div>
 ))}

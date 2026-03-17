@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { supabase } from "./supabaseClient"
 
 export default function Propietarios() {
 
   const [propietarios, setPropietarios] = useState([])
   const [propietarioEditando, setPropietarioEditando] = useState(null)
+  const formRef = useRef(null)
   const [busqueda, setBusqueda] = useState("")
   const [form, setForm] = useState({
     nombre: "",
@@ -72,18 +73,22 @@ export default function Propietarios() {
 
   function editarPropietario(p) {
 
-    setPropietarioEditando(p.id)
+  setPropietarioEditando(p.id)
 
-    setForm({
-      nombre: p.nombre || "",
-      dni: p.dni || "",
-      telefono: p.telefono || "",
-      direccion: p.direccion || "",
-      email: p.email || "",
-      notas: p.notas || ""
-    })
+  setForm({
+    nombre: p.nombre || "",
+    dni: p.dni || "",
+    telefono: p.telefono || "",
+    direccion: p.direccion || "",
+    email: p.email || "",
+    notas: p.notas || ""
+  })
 
-  }
+  formRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  })
+}
 
   return (
     <div>
@@ -98,6 +103,8 @@ export default function Propietarios() {
       />
 
       <br/><br/>
+
+      <div ref={formRef}>
 
       <input
         name="nombre"
@@ -151,8 +158,10 @@ export default function Propietarios() {
       <button onClick={guardar}>
         {propietarioEditando ? "Actualizar Propietario" : "Guardar Propietario"}
       </button>
-
+      <br/><br/>
       <hr/>
+
+      </div>
 
       {propietariosFiltrados.map(p => (
 

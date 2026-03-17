@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { supabase } from "./supabaseClient"
 
 
@@ -7,15 +7,17 @@ export default function Pacientes({ setVista, setPacienteSeleccionado }) {
   const [pacientes, setPacientes] = useState([])
   const [busqueda, setBusqueda] = useState("")
   const [propietarios, setPropietarios] = useState([])
+  const formRef = useRef(null)
   const [pacienteEditando, setPacienteEditando] = useState(null)
   const [form, setForm] = useState({
   nombre: "",
   especie: "",
   raza: "",
   sexo: "",
-  fecha_nacimiento: "",
+  anio_nacimiento: "",
   color: "",
-  propietario_id: ""
+  propietario_id: "",
+  observaciones: ""
   })
   const pacientesFiltrados = pacientes.filter(p =>
   p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -67,24 +69,33 @@ export default function Pacientes({ setVista, setPacienteSeleccionado }) {
     especie: "",
     raza: "",
     sexo: "",
-    fecha_nacimiento: "",
+    anio_nacimiento: "",
     color: "",
-    propietario_id: ""
+    propietario_id: "",
+    observaciones: ""
   })
 
   cargarPacientes()
 }
 
   function editarPaciente(p) {
+
   setPacienteEditando(p.id)
+
   setForm({
     nombre: p.nombre || "",
     especie: p.especie || "",
     raza: p.raza || "",
     sexo: p.sexo || "",
-    fecha_nacimiento: p.fecha_nacimiento || "",
+    anio_nacimiento: p.anio_nacimiento || "",
     color: p.color || "",
-    propietario_id: p.propietario_id || ""
+    propietario_id: p.propietario_id || "",
+    observaciones: p.observaciones || ""
+  })
+
+  formRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
   })
 }
 
@@ -106,6 +117,7 @@ export default function Pacientes({ setVista, setPacienteSeleccionado }) {
 
       <br/><br/>
 
+      <div ref={formRef}>
       <input name="nombre" placeholder="Nombre" onChange={handleChange} value={form.nombre}/>
       <br/><br/>
 
@@ -118,12 +130,23 @@ export default function Pacientes({ setVista, setPacienteSeleccionado }) {
       <input name="sexo" placeholder="Sexo" onChange={handleChange} value={form.sexo}/>
       <br/><br/>
 
-      <label>Fecha de nacimiento</label>
-      <br/>
-      <input type="date" name="fecha_nacimiento" onChange={handleChange} value={form.fecha_nacimiento}/>
+      <input 
+          name="anio_nacimiento"
+          placeholder="Año de nacimiento (ej: 2020)"
+          onChange={handleChange}
+          value={form.anio_nacimiento}
+      />
       <br/><br/>
 
       <input name="color" placeholder="Color" onChange={handleChange} value={form.color}/>
+      <br/><br/>
+
+      <textarea
+        name="observaciones"
+        placeholder="Observaciones (ej: castrado, alergias, etc)"
+        onChange={handleChange}
+        value={form.observaciones}
+      />
       <br/><br/>
 
       <select name="propietario_id" onChange={handleChange} value={form.propietario_id}>
@@ -141,7 +164,9 @@ export default function Pacientes({ setVista, setPacienteSeleccionado }) {
         {pacienteEditando ? "Actualizar Paciente" : "Guardar Paciente"}
       </button>
 
+      <br/><br/>
       <hr/>
+      </div>
 
       {pacientesFiltrados.map(p => (
 
