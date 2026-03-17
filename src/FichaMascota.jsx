@@ -8,27 +8,12 @@ export default function FichaMascota({ pacienteId, setVista }) {
   const [form, setForm] = useState({})
   const [consultas, setConsultas] = useState([])
 
-  function calcularEdad(fecha){
+  function calcularEdad(anio){
+  if(!anio) return "No registrada"
 
-    if(!fecha) return "No registrada"
-
-    const hoy = new Date()
-    const nacimiento = new Date(fecha)
-
-    let años = hoy.getFullYear() - nacimiento.getFullYear()
-    let meses = hoy.getMonth() - nacimiento.getMonth()
-
-    if(meses < 0){
-      años--
-      meses += 12
-    }
-
-    if(años === 0){
-      return `${meses} meses`
-    }
-
-    return `${años} años`
-  }
+  const actual = new Date().getFullYear()
+  return `${actual - anio} años`
+}
 
   function calcularRefuerzo(fecha, meses){
 
@@ -71,7 +56,8 @@ export default function FichaMascota({ pacienteId, setVista }) {
         .eq("paciente_id", pacienteId)
         .order("fecha", { ascending: false })
 
-    setConsultas(historial || [])
+        //console.log("CONSULTAS:", historial)
+        setConsultas(historial || [])
 
   }
 
@@ -83,7 +69,7 @@ export default function FichaMascota({ pacienteId, setVista }) {
       nombre: form.nombre,
       raza: form.raza,
       color: form.color,
-      fecha_nacimiento: form.fecha_nacimiento
+      anio_nacimiento: form.anio_nacimiento
     })
     .eq("id", mascota.id)
 
@@ -287,30 +273,15 @@ function cancelarEdicion(){
             </div>
 
             <div className="paciente-prop">
-                <strong>Nacimiento:</strong>
-
-                {editando ? (
-
-                    <input
-                    type="date"
-                    value={form.fecha_nacimiento || ""}
-                    onChange={(e)=>setForm({...form,fecha_nacimiento:e.target.value})}
-                    />
-
-                ) : (
-
-                    mascota.fecha_nacimiento || "No registrado"
-
-                )}
-
-                </div>
-
-            <div className="paciente-prop">
-            <strong>Edad:</strong> {calcularEdad(mascota.fecha_nacimiento)}
+            <strong>Edad:</strong> {calcularEdad(mascota.anio_nacimiento)}
             </div>
 
             <div className="paciente-prop">
-            <strong>Peso:</strong> {mascota.peso || "No registrado"}
+            <strong>Peso:</strong> {
+            consultas.length > 0
+                ? `${consultas[0].peso} kg`
+                : "No registrado"
+            }
             </div>
 
         </div>
@@ -337,7 +308,7 @@ function cancelarEdicion(){
             <h3>Notas veterinarias</h3>
 
             <p>
-            {mascota.notas || "No hay notas registradas."}
+            {mascota.observaciones || "No hay notas registradas."}
             </p>
 
         </div>
@@ -351,7 +322,7 @@ function cancelarEdicion(){
     )}
 
 {consultas.map(c => (
-
+  
   <div key={c.id} className="historial-item">
 
     <div className="historial-fecha">
@@ -359,14 +330,14 @@ function cancelarEdicion(){
     </div>
 
     <div className="historial-motivo">
-      {c.motivo}
+    <strong>Motivo:</strong> {c.motivo}
     </div>
 
     {c.tratamiento && (
-      <div className="historial-tratamiento">
-        Tratamiento: {c.tratamiento}
-      </div>
-    )}
+        <div className="historial-tratamiento">
+            <strong>Tratamiento:</strong> {c.tratamiento}
+        </div>
+        )}
 
     {/* VACUNAS */}
 

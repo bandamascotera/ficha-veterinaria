@@ -36,6 +36,13 @@ export default function Mascotas({ user, setVista, setPacienteSeleccionado }) {
 
   }
 
+  function calcularEdad(anio){
+  if(!anio) return "No registrada"
+
+  const actual = new Date().getFullYear()
+  return actual - anio
+}
+
   return (
     <div>
 
@@ -71,8 +78,8 @@ export default function Mascotas({ user, setVista, setPacienteSeleccionado }) {
           </div>
 
           <div className="paciente-prop">
-            Nacimiento: {m.fecha_nacimiento || "No registrado"}
-          </div>
+            Edad: {calcularEdad(m.anio_nacimiento)} {m.anio_nacimiento ? "años" : ""}
+            </div>
 
           <div className="paciente-prop">
             Color: {m.color || "No registrado"}

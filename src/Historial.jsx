@@ -82,11 +82,7 @@ export default function Historial({ user }) {
             <strong>Motivo:</strong> {c.motivo}
             </div>
 
-            {c.diagnostico && (
-            <div className="historial-diagnostico">
-                <strong>Diagnóstico:</strong> {c.diagnostico}
-            </div>
-            )}
+            
 
             {c.tratamiento && (
             <div className="historial-tratamiento">
@@ -100,11 +96,7 @@ export default function Historial({ user }) {
             </div>
             )}
 
-            {c.observaciones && (
-            <div className="historial-observaciones">
-                <strong>Observaciones:</strong> {c.observaciones}
-            </div>
-            )}
+            
 
         </div>
 
